@@ -14,18 +14,6 @@ import numpy
 import pika
 
 
-# Setup logging.
-logging.basicConfig(
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%m/%d/%Y %I:%M:%S %p',
-    level=logging.DEBUG,
-    filemode='w',
-    filename="%s/sensoryservice.log" % config.LOGS_DIR
-)
-
-# Generate our Sensory Service Interface
-ssc = sensory_interface.SensoryInterface('server')
-
 # https://stackoverflow.com/questions/273192/how-can-i-create-a-directory-if-it-does-not-exist
 def make_sure_path_exists(path):
     try:
@@ -33,6 +21,20 @@ def make_sure_path_exists(path):
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
+
+
+# Setup logging.
+make_sure_path_exists(config.LOGS_DIR)
+logging.basicConfig(
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%m/%d/%Y %I:%M:%S %p',
+    level=logging.DEBUG,
+    filemode='w',
+    filename="%s/%s.sensoryservice.log" % (config.LOGS_DIR, os.uname()[1])
+)
+
+# Generate our Sensory Service Interface
+ssc = sensory_interface.SensoryInterface('server')
 
 
 def sensory_store(data_dir, data_category, raw_image_data):
