@@ -35,9 +35,9 @@ def make_sure_path_exists(path):
             raise
 
 
-def sensory_store(tmp_dir, data_dir, data_category, raw_image_data):
+def sensory_store(data_dir, data_category, raw_image_data):
     filename = "%s" % datetime.now().strftime('%Y-%m-%d_%H_%M_%S_%f.tmp.png')
-    path = "%s/%s%s/" % (tmp_dir, data_dir, data_category)
+    path = "%s%s/" % (data_dir, data_category)
     full_filename = "%s%s" % (path, filename)
     logging.debug("(%s)" % (full_filename))
     make_sure_path_exists(path)
