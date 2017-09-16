@@ -38,7 +38,7 @@ ssc = sensory_interface.SensoryInterface('server')
 
 
 def sensory_store(data_dir, data_category, raw_image_data):
-    filename = "%s" % datetime.now().strftime('%Y-%m-%d_%H_%M_%S_%f.tmp.png')
+    filename = "%s" % datetime.now().strftime('%Y-%m-%d_%H_%M_%S_%f.png')
     path = "%s%s/" % (data_dir, data_category)
     full_filename = "%s%s" % (path, filename)
     logging.debug("(%s)" % (full_filename))
