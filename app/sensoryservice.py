@@ -173,7 +173,7 @@ def make_api_sensory_store_public():
     network_name = "%s_%ix%i" % (dataset_name, image_width, image_height)
     data_directory = "%s/%s/data/" % (config.DATA_BASE_DIRECTORY, network_name)
 
-    return_code = sensory_store(config.TMP_DIR, data_directory, category, decoded_image_data)
+    return_code = sensory_store(data_directory, category, decoded_image_data)
     return make_response(jsonify({'sensory_store': return_code}), 201)
 
 
