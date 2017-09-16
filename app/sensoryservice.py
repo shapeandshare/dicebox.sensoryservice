@@ -17,7 +17,8 @@ import pika
 # https://stackoverflow.com/questions/273192/how-can-i-create-a-directory-if-it-does-not-exist
 def make_sure_path_exists(path):
     try:
-        os.makedirs(path)
+        if os.path.exists(path) is False:
+            os.makedirs(path)
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
