@@ -1,39 +1,3 @@
-# dicebox
-               Let's shake things up!
-
-Overview
---------
-An image classification and training system built with SOA (Service-Oriented Architecture) in mind.  The project includes several client implementations, and future enhancements will continue to expand the API capabilities.
-
-1. **Visual Image Classification**
-
-    Dicebox is a visual classification system.  It can be reconfigured for different image sizes and categories.
-
-2. **Evolutionary Neural Network**
-
-    Dicebox is capable of being applied to a large variety of classification problems.  Sometimes unique or novel problems need to be solved and a neural network structure is unknown.  In this case dicebox provides a means to evolve a network tailored to the particular problem.
-
-3. **Service-Oriented Architecture**
-   
-*   The trained neural network is accessed through a REST API.  
-*   The Web Client (and supervised trainer) stores data to an AWS EFS via the REST API.
-*   The Trainer uses the REST API for training data
-
-
-
-High Level Components
----------------------
-
-![Dicebox Services Diagram](https://github.com/shapeandshare/dicebox/raw/master/assets/Dicebox%20Services%20Diagram.090217.png)
-
-* **Sensory Service**
-
-    The sensory service is a REST API that will store data that needs to be added to training set for a given classification.  It is primary consumed by the stand-alone trainer.
-
-    Provides input data directly for small batch sizes, or can queue up large batch orders for creation by the batch processor.
- 
-
-
 Sensory Service
 ===============
 Provides an end-point that performs input data storage and retrieval via REST API calls.
@@ -57,8 +21,9 @@ uwsgi --http-socket 127.0.0.1:5000 --manage-script-name --mount /=sensory_servic
 
 **Docker Container**
 
-The recommended way to run the service is by using the official provided docker container.
-The container should be deployed to a Docker Swarm as a service.
+The recommended way to run the service is by using the official provided docker container. The container is published to Docker Hub [here](https://hub.docker.com/r/shapeandshare/dicebox.sensoryservice/).
+
+The container should be deployed to a Docker Swarm as a service, or as a stand-alone container within a Docker Engine.
 
 **Example**
 ```
@@ -89,7 +54,7 @@ docker volume create -d "cloudstor:aws" --opt backing=shared dicebox
 
 Contributing
 ------------
-1. Fork the repository on Github
+1. Fork the [repository](https://github.com/shapeandshare/dicebox.sensoryservice) on Github
 2. Create a named feature branch (like `add_component_x`)
 3. Write your change
 4. Write tests for your change (if applicable)
