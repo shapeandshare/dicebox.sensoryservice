@@ -8,6 +8,9 @@ Provides an end-point that performs input data storage and retrieval via REST AP
 
 
 ### Getting Started
+
+* **For details on data sets please refer to the Dicebox SDK.**
+
 The application is meant to be run within a docker container.  If you need to run it outside of the container for development you will need to make the core libraries and dicebox.config file available to the application.
 
 **Development Runtime Layout**
@@ -23,6 +26,7 @@ The application is meant to be run within a docker container.  If you need to ru
 ```
 * Symbolicly link /root/dicebox -> /root/app/lib
 * Copy dicebox.config into /root/app
+
 
 **Start the service (development only):**
 ```
