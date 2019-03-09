@@ -1,0 +1,209 @@
+{
+	"info": {
+		"_postman_id": "30bb3fba-0bca-476d-8d19-9cd342692aad",
+		"name": "sensory service [dicebox]",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "{{sensoryservice_url}}/health/plain",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{sensoryservice_url}}/health/plain",
+					"host": [
+						"{{sensoryservice_url}}"
+					],
+					"path": [
+						"health",
+						"plain"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{sensoryservice_url}}/api/version",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{sensoryservice_url}}/api/version",
+					"host": [
+						"{{sensoryservice_url}}"
+					],
+					"path": [
+						"api",
+						"version"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{sensoryservice_url}}/api/sensory/request",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "API-ACCESS-KEY",
+						"value": "{{api_access_key}}",
+						"type": "text"
+					},
+					{
+						"key": "API-VERSION",
+						"value": "{{api_version}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"batch_size\": 10,\n\t\"noise\": 0\n}"
+				},
+				"url": {
+					"raw": "{{sensoryservice_url}}/api/sensory/request",
+					"host": [
+						"{{sensoryservice_url}}"
+					],
+					"path": [
+						"api",
+						"sensory",
+						"request"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{sensoryservice_url}}/api/sensory/poll",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "API-ACCESS-KEY",
+						"value": "{{api_access_key}}",
+						"type": "text"
+					},
+					{
+						"key": "API-VERSION",
+						"value": "{{api_version}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"batch_id\": \"10\"\n}"
+				},
+				"url": {
+					"raw": "{{sensoryservice_url}}/api/sensory/poll",
+					"host": [
+						"{{sensoryservice_url}}"
+					],
+					"path": [
+						"api",
+						"sensory",
+						"poll"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{sensoryservice_url}}/api/sensory/batch",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "API-ACCESS-KEY",
+						"value": "{{api_access_key}}",
+						"type": "text"
+					},
+					{
+						"key": "API-VERSION",
+						"value": "{{api_version}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"batch_size\": 10,\n\t\"noise\": 0\n}"
+				},
+				"url": {
+					"raw": "{{sensoryservice_url}}/api/sensory/batch",
+					"host": [
+						"{{sensoryservice_url}}"
+					],
+					"path": [
+						"api",
+						"sensory",
+						"batch"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{sensoryservice_url}}/api/sensory/store",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "API-ACCESS-KEY",
+						"value": "{{api_access_key}}",
+						"type": "text"
+					},
+					{
+						"key": "API-VERSION",
+						"value": "{{api_version}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"\",\n\t\"width\": \"\",\n\t\"height\": \"\",\n\t\"height\": \"\",\n\t\"data\": \"\"\n}"
+				},
+				"url": {
+					"raw": "{{sensoryservice_url}}/api/sensory/store",
+					"host": [
+						"{{sensoryservice_url}}"
+					],
+					"path": [
+						"api",
+						"sensory",
+						"store"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -6,3 +6,4 @@ Change Log
 * Added RabbitMQ configuration section to the README.
 * Added more details around development to the README.
 * Updated gitignore for more development exclusions.
+* Added postman collection and sample environment.
