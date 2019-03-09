@@ -17,6 +17,16 @@ I've tested running the sensory service with uwsgi, and proxied through nginx.  
 uwsgi --http-socket 127.0.0.1:5000 --manage-script-name --mount /=sensory_service.py --plugin python,http --enable-threads --callable app —master
 ```
 
+### RabbitMQ Configuration
+* Service account for the service to connect to the vhost
+* vhost: sensory
+* exchange: sensory.exchange
+  * type: topic
+* queue: sensory.batch.request.task.queue
+* binding:
+  * (exchange) sensory.exchange >--> (routing key): task_queue >--> (queue) sensory.batch.request.task.queue
+
+
 ### Production Deployment
 
 **Docker Container**
