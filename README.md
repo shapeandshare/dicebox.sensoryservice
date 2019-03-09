@@ -7,6 +7,23 @@ Provides an end-point that performs input data storage and retrieval via REST AP
     * For large batches a batch order is created and the trainer polls the sensory service to get all the training data. (The sensory service pulls the data off a RabbitMQ queue with a matching batch order id.)
 
 
+### Getting Started
+The application is meant to be run within a docker container.  If you need to run it outside of the container for development you will need to make the core libraries and dicebox.config file available to the application.
+
+**Development Runtime Layout**
+```
+/root
+    /app
+        /lib 
+        /dicebox.config
+        [...]
+    /assets
+    /dicebox
+    [...]
+```
+* Symbolicly link /root/dicebox -> /root/app/lib
+* Copy dicebox.config into /root/app
+
 **Start the service (development only):**
 ```
     python ./sensory_service.py

@@ -104,3 +104,11 @@ ENV/
 .idea
 
 venv/
+
+
+# dicebox specific ignores
+app/datasets
+app/weights
+app/tmp
+app/lib
+app/dicebox.config
