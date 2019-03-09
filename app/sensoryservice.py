@@ -1,4 +1,16 @@
 #!flask/bin/python
+###############################################################################
+# Sensory Service
+#   Handles requests for sensory information, and storage of classified
+#    samples.
+#
+# Copyright (c) 2017-2019 Joshua Burt
+###############################################################################
+
+
+###############################################################################
+# Dependencies
+###############################################################################
 import lib.docker_config as config
 from lib import sensory_interface
 from flask import Flask, jsonify, request, make_response, abort
@@ -14,7 +26,10 @@ import numpy
 import pika
 
 
+###############################################################################
+# Allows for easy directory structure creation
 # https://stackoverflow.com/questions/273192/how-can-i-create-a-directory-if-it-does-not-exist
+###############################################################################
 def make_sure_path_exists(path):
     try:
         if os.path.exists(path) is False:
@@ -24,7 +39,9 @@ def make_sure_path_exists(path):
             raise
 
 
-# Setup logging.
+###############################################################################
+# Setup logging
+###############################################################################
 make_sure_path_exists(config.LOGS_DIR)
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -34,10 +51,16 @@ logging.basicConfig(
     filename="%s/%s.sensoryservice.log" % (config.LOGS_DIR, os.uname()[1])
 )
 
+
+###############################################################################
 # Generate our Sensory Service Interface
+###############################################################################
 ssc = sensory_interface.SensoryInterface('server')
 
 
+###############################################################################
+# Stores incoming sensory data
+###############################################################################
 def sensory_store(data_dir, data_category, raw_image_data):
     filename = "%s" % datetime.now().strftime('%Y-%m-%d_%H_%M_%S_%f.png')
     path = "%s%s/" % (data_dir, data_category)
@@ -49,11 +72,19 @@ def sensory_store(data_dir, data_category, raw_image_data):
     return True
 
 
+###############################################################################
+# Used for creating small sensory batches
+###############################################################################
 def sensory_request(batch_size, noise=0):
     data, labels = ssc.get_batch(batch_size, noise)
     return data, labels
 
 
+###############################################################################
+# Used for large batches.  Uses an external message system to issue batch
+# request to a separate service.  Uses 'sharding' to allow for parallel
+# processing by multiple batch processors.
+###############################################################################
 def sensory_batch_request(batch_size, noise=0):
     sensory_batch_request_id = uuid.uuid4()
 
@@ -110,7 +141,9 @@ def sensory_batch_request(batch_size, noise=0):
     return sensory_batch_request_id
 
 
+###############################################################################
 # return a queued batch order message for the supplied request id if possible
+###############################################################################
 def sensory_batch_poll(batch_id):
     # lets try to grab more than one at a time // combine and return
     # since this is going to clients lets reduce chatter
@@ -140,31 +173,37 @@ def sensory_batch_poll(batch_id):
     return data, label
 
 
+###############################################################################
+# Create the flask, and cors config
+###############################################################################
 app = Flask(__name__)
 cors = CORS(app, resources={r"/api/*": {"origins": "http://localhost:*"}})
 
 
+###############################################################################
+# Used to store sensory data
+###############################################################################
 @app.route('/api/sensory/store', methods=['POST'])
 def make_api_sensory_store_public():
     if request.headers['API-ACCESS-KEY'] != config.API_ACCESS_KEY:
-        abort(401)
+        abort(403)
     if request.headers['API-VERSION'] != config.API_VERSION:
         abort(400)
     if not request.json:
-        abort(400)
+        abort(500)
 
     if 'name' not in request.json:
-        abort(400)
+        abort(500)
     if 'width' not in request.json:
-        abort(400)
+        abort(500)
     if 'height' not in request.json:
-        abort(400)
-    if 'category' not in request.json:
-        abort(400)
+        abort(500)
+    if 'height' not in request.json:
+        abort(500)
     if 'data' not in request.json:
-        abort(400)
+        abort(500)
     if 'data' in request.json and type(request.json['data']) != unicode:
-        abort(400)
+        abort(500)
 
     dataset_name = request.json.get('name')
     image_width = request.json.get('width')
@@ -177,51 +216,55 @@ def make_api_sensory_store_public():
     data_directory = "%s/%s/data/" % (config.DATA_BASE_DIRECTORY, network_name)
 
     return_code = sensory_store(data_directory, category, decoded_image_data)
-    return make_response(jsonify({'sensory_store': return_code}), 201)
+    return make_response(jsonify({'sensory_store': return_code}), 200)
 
 
-# for big batches
+###############################################################################
+# For Requesting big batches
+###############################################################################
 @app.route('/api/sensory/batch', methods=['POST'])
 def make_api_sensory_batch_request_public():
     if request.headers['API-ACCESS-KEY'] != config.API_ACCESS_KEY:
         logging.debug('bad access key')
-        abort(401)
+        abort(403)
     if request.headers['API-VERSION'] != config.API_VERSION:
         logging.debug('bad access version')
         abort(400)
     if not request.json:
         logging.debug('request not json')
-        abort(400)
+        abort(500)
 
     if 'batch_size' not in request.json:
         logging.debug('batch size not in request')
-        abort(400)
+        abort(500)
     if 'noise' not in request.json:
         logging.debug('noise not in request')
-        abort(400)
+        abort(500)
 
     batch_size = request.json.get('batch_size')
     noise = request.json.get('noise')
 
     sensory_batch_request_id = sensory_batch_request(batch_size, noise)
-    return make_response(jsonify({'batch_id': sensory_batch_request_id}), 201)
+    return make_response(jsonify({'batch_id': sensory_batch_request_id}), 202)
 
 
+###############################################################################
+# async request queue polling end point
+###############################################################################
 @app.route('/api/sensory/poll', methods=['POST'])
 def make_api_sensory_poll_public():
     if request.headers['API-ACCESS-KEY'] != config.API_ACCESS_KEY:
         logging.debug('bad access key')
-        abort(401)
+        abort(403)
     if request.headers['API-VERSION'] != config.API_VERSION:
         logging.debug('bad access version')
         abort(400)
     if not request.json:
         logging.debug('request not json')
-        abort(400)
-
+        abort(500)
     if 'batch_id' not in request.json:
         logging.debug('batch id not in request')
-        abort(400)
+        abort(500)
 
     batch_id = request.json.get('batch_id')
 
@@ -229,56 +272,69 @@ def make_api_sensory_poll_public():
     return make_response(jsonify({
         'label': numpy.array(label).tolist(),
         'data': numpy.array(data).tolist()
-    }), 201)
+    }), 200)
 
 
+###############################################################################
 # for small batches..
+###############################################################################
 @app.route('/api/sensory/request', methods=['POST'])
 def make_api_sensory_request_public():
     if request.headers['API-ACCESS-KEY'] != config.API_ACCESS_KEY:
         logging.debug('bad access key')
-        abort(401)
+        abort(403)
     if request.headers['API-VERSION'] != config.API_VERSION:
         logging.debug('bad access version')
         abort(400)
     if not request.json:
         logging.debug('request not json')
-        abort(400)
+        abort(500)
 
     if 'batch_size' not in request.json:
         logging.debug('batch size not in request')
-        abort(400)
+        abort(500)
     if 'noise' not in request.json:
         logging.debug('noise not in request')
-        abort(400)
+        abort(500)
 
     batch_size = request.json.get('batch_size')
     noise = request.json.get('noise')
 
     data, labels = sensory_request(batch_size, noise)
     return make_response(jsonify({
-                                  'labels': numpy.array(labels).tolist(),
+        'labels': numpy.array(labels).tolist(),
         'data': numpy.array(data).tolist()
-                                  }), 201)
+    }), 201)
 
 
-
+###############################################################################
+# Returns API version
+###############################################################################
 @app.route('/api/version', methods=['GET'])
 def make_api_version_public():
-    return make_response(jsonify({'version':  str(config.API_VERSION)}), 201)
+    return make_response(jsonify({'version':  str(config.API_VERSION)}), 200)
 
 
+###############################################################################
+# Super generic health end-point
+###############################################################################
 @app.route('/health/plain', methods=['GET'])
 @cross_origin()
 def make_health_plain_public():
-    return make_response('true', 201)
+    return make_response('true', 200)
 
 
+###############################################################################
+# 404 Handler
+###############################################################################
 @app.errorhandler(404)
 def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
 
 
+###############################################################################
+# main entry point, thread safe
+###############################################################################
 if __name__ == '__main__':
     logging.debug('starting flask app')
     app.run(debug=config.FLASK_DEBUG, host=config.LISTENING_HOST, threaded=True)
