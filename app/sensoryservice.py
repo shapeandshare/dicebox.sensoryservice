@@ -147,24 +147,24 @@ cors = CORS(app, resources={r"/api/*": {"origins": "http://localhost:*"}})
 @app.route('/api/sensory/store', methods=['POST'])
 def make_api_sensory_store_public():
     if request.headers['API-ACCESS-KEY'] != config.API_ACCESS_KEY:
-        abort(401)
+        abort(403)
     if request.headers['API-VERSION'] != config.API_VERSION:
         abort(400)
     if not request.json:
-        abort(400)
+        abort(500)
 
     if 'name' not in request.json:
-        abort(400)
+        abort(500)
     if 'width' not in request.json:
-        abort(400)
+        abort(500)
     if 'height' not in request.json:
-        abort(400)
-    if 'category' not in request.json:
-        abort(400)
+        abort(500)
+    if 'height' not in request.json:
+        abort(500)
     if 'data' not in request.json:
-        abort(400)
+        abort(500)
     if 'data' in request.json and type(request.json['data']) != unicode:
-        abort(400)
+        abort(500)
 
     dataset_name = request.json.get('name')
     image_width = request.json.get('width')
@@ -177,7 +177,7 @@ def make_api_sensory_store_public():
     data_directory = "%s/%s/data/" % (config.DATA_BASE_DIRECTORY, network_name)
 
     return_code = sensory_store(data_directory, category, decoded_image_data)
-    return make_response(jsonify({'sensory_store': return_code}), 201)
+    return make_response(jsonify({'sensory_store': return_code}), 200)
 
 
 # for big batches
@@ -185,43 +185,42 @@ def make_api_sensory_store_public():
 def make_api_sensory_batch_request_public():
     if request.headers['API-ACCESS-KEY'] != config.API_ACCESS_KEY:
         logging.debug('bad access key')
-        abort(401)
+        abort(403)
     if request.headers['API-VERSION'] != config.API_VERSION:
         logging.debug('bad access version')
         abort(400)
     if not request.json:
         logging.debug('request not json')
-        abort(400)
+        abort(500)
 
     if 'batch_size' not in request.json:
         logging.debug('batch size not in request')
-        abort(400)
+        abort(500)
     if 'noise' not in request.json:
         logging.debug('noise not in request')
-        abort(400)
+        abort(500)
 
     batch_size = request.json.get('batch_size')
     noise = request.json.get('noise')
 
     sensory_batch_request_id = sensory_batch_request(batch_size, noise)
-    return make_response(jsonify({'batch_id': sensory_batch_request_id}), 201)
+    return make_response(jsonify({'batch_id': sensory_batch_request_id}), 202)
 
 
 @app.route('/api/sensory/poll', methods=['POST'])
 def make_api_sensory_poll_public():
     if request.headers['API-ACCESS-KEY'] != config.API_ACCESS_KEY:
         logging.debug('bad access key')
-        abort(401)
+        abort(403)
     if request.headers['API-VERSION'] != config.API_VERSION:
         logging.debug('bad access version')
         abort(400)
     if not request.json:
         logging.debug('request not json')
-        abort(400)
-
+        abort(500)
     if 'batch_id' not in request.json:
         logging.debug('batch id not in request')
-        abort(400)
+        abort(500)
 
     batch_id = request.json.get('batch_id')
 
@@ -229,7 +228,7 @@ def make_api_sensory_poll_public():
     return make_response(jsonify({
         'label': numpy.array(label).tolist(),
         'data': numpy.array(data).tolist()
-    }), 201)
+    }), 200)
 
 
 # for small batches..
@@ -237,41 +236,40 @@ def make_api_sensory_poll_public():
 def make_api_sensory_request_public():
     if request.headers['API-ACCESS-KEY'] != config.API_ACCESS_KEY:
         logging.debug('bad access key')
-        abort(401)
+        abort(403)
     if request.headers['API-VERSION'] != config.API_VERSION:
         logging.debug('bad access version')
         abort(400)
     if not request.json:
         logging.debug('request not json')
-        abort(400)
+        abort(500)
 
     if 'batch_size' not in request.json:
         logging.debug('batch size not in request')
-        abort(400)
+        abort(500)
     if 'noise' not in request.json:
         logging.debug('noise not in request')
-        abort(400)
+        abort(500)
 
     batch_size = request.json.get('batch_size')
     noise = request.json.get('noise')
 
     data, labels = sensory_request(batch_size, noise)
     return make_response(jsonify({
-                                  'labels': numpy.array(labels).tolist(),
+        'labels': numpy.array(labels).tolist(),
         'data': numpy.array(data).tolist()
-                                  }), 201)
-
+    }), 201)
 
 
 @app.route('/api/version', methods=['GET'])
 def make_api_version_public():
-    return make_response(jsonify({'version':  str(config.API_VERSION)}), 201)
+    return make_response(jsonify({'version':  str(config.API_VERSION)}), 200)
 
 
 @app.route('/health/plain', methods=['GET'])
 @cross_origin()
 def make_health_plain_public():
-    return make_response('true', 201)
+    return make_response('true', 200)
 
 
 @app.errorhandler(404)
