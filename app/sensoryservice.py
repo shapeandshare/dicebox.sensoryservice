@@ -142,7 +142,7 @@ def sensory_batch_request(batch_size, noise=0):
 
 
 ###############################################################################
-# return a queued batch order message for the supplied request id if possible
+# returns a queued batch order message for the supplied request id if possible
 ###############################################################################
 def sensory_batch_poll(batch_id):
     # lets try to grab more than one at a time // combine and return
