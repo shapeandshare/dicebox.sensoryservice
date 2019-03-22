@@ -57,6 +57,10 @@ logging.basicConfig(
 ###############################################################################
 ssc = sensory_interface.SensoryInterface('server')
 
+# Write category map to disk for later usage directly with weights.
+logging.debug('writing category map to %s/category_map.json' % config.WEIGHTS_DIR)
+with open('%s/category_map.json' % config.WEIGHTS_DIR, 'w') as cat_map_file:
+    cat_map_file.write(json.dumps(ssc.fsc.CATEGORY_MAP))
 
 ###############################################################################
 # Stores incoming sensory data
