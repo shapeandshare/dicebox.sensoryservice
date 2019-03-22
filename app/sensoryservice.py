@@ -48,7 +48,7 @@ logging.basicConfig(
     datefmt='%m/%d/%Y %I:%M:%S %p',
     level=logging.DEBUG,
     filemode='w',
-    filename="%s/%s.sensoryservice.log" % (config.LOGS_DIR, os.uname()[1])
+    filename="%s/sensoryservice.%s.log" % (config.LOGS_DIR, os.uname()[1])
 )
 
 
