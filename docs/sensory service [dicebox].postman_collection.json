@@ -89,6 +89,45 @@
 			"response": []
 		},
 		{
+			"name": "{{sensoryservice_url}}/api/sensory/category",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "API-ACCESS-KEY",
+						"type": "text",
+						"value": "{{api_access_key}}"
+					},
+					{
+						"key": "API-VERSION",
+						"type": "text",
+						"value": "{{api_version}}"
+					},
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{sensoryservice_url}}/api/sensory/category",
+					"host": [
+						"{{sensoryservice_url}}"
+					],
+					"path": [
+						"api",
+						"sensory",
+						"category"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "{{sensoryservice_url}}/api/sensory/poll",
 			"request": {
 				"method": "POST",

@@ -185,6 +185,19 @@ cors = CORS(app, resources={r"/api/*": {"origins": "http://localhost:*"}})
 
 
 ###############################################################################
+# Provides categories for client consumption
+###############################################################################
+@app.route('/api/sensory/category', methods=['GET'])
+def make_api_category_map_public():
+    if request.headers['API-ACCESS-KEY'] != config.API_ACCESS_KEY:
+        abort(403)
+    if request.headers['API-VERSION'] != config.API_VERSION:
+        abort(400)
+
+    return make_response(jsonify({'category_map': ssc.fsc.CATEGORY_MAP}), 200)
+
+
+###############################################################################
 # Used to store sensory data
 ###############################################################################
 @app.route('/api/sensory/store', methods=['POST'])
