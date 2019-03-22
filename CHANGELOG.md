@@ -15,3 +15,4 @@ Change Log
 * Made the sensory service in charge in creating the category_map.json for the data sets for the time being
 * Moved Postman samples in to'docs'.
 * Changed log file name to be prefixed by the service name.
+* Exposed categories through /api/sensory/category endpoint.
