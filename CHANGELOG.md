@@ -16,3 +16,7 @@ Change Log
 * Moved Postman samples in to'docs'.
 * Changed log file name to be prefixed by the service name.
 * Exposed categories through /api/sensory/category endpoint.
+
+03.23.2019
+----------
+* Updated Core Libraries.
