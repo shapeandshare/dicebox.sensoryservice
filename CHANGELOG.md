@@ -23,5 +23,5 @@ Change Log
 
 03.30.2019
 ----------
-- Updated Core Libraries.
-- Refactored to use updated libraries.
+* Updated Core Libraries.
+* Refactored to use updated libraries.
