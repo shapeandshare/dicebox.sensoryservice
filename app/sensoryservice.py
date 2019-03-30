@@ -27,7 +27,8 @@ import pika
 
 
 # Config
-CONFIG = dicebox.docker_config.DockerConfig('./dicebox.config')
+config_file = './dicebox.config'
+CONFIG = dicebox.docker_config.DockerConfig(config_file)
 
 
 ###############################################################################
@@ -59,7 +60,7 @@ logging.basicConfig(
 ###############################################################################
 # Generate our Sensory Service Interface
 ###############################################################################
-ssc = dicebox.sensory_interface.SensoryInterface('server')
+ssc = dicebox.sensory_interface.SensoryInterface('server', config_file)
 
 
 # Write category map to disk for later usage directly with weights.
