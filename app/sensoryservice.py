@@ -11,8 +11,8 @@
 ###############################################################################
 # Dependencies
 ###############################################################################
-import lib.docker_config as config
-from lib import sensory_interface
+import dicebox.docker_config
+import dicebox.sensory_interface
 from flask import Flask, jsonify, request, make_response, abort
 from flask_cors import CORS, cross_origin
 import base64
@@ -24,6 +24,10 @@ import errno
 import uuid
 import numpy
 import pika
+
+
+# Config
+CONFIG = dicebox.docker_config.DockerConfig('./dicebox.config')
 
 
 ###############################################################################
@@ -42,25 +46,28 @@ def make_sure_path_exists(path):
 ###############################################################################
 # Setup logging
 ###############################################################################
-make_sure_path_exists(config.LOGS_DIR)
+make_sure_path_exists(CONFIG.LOGS_DIR)
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p',
     level=logging.DEBUG,
     filemode='w',
-    filename="%s/sensoryservice.%s.log" % (config.LOGS_DIR, os.uname()[1])
+    filename="%s/sensoryservice.%s.log" % (CONFIG.LOGS_DIR, os.uname()[1])
 )
 
 
 ###############################################################################
 # Generate our Sensory Service Interface
 ###############################################################################
-ssc = sensory_interface.SensoryInterface('server')
+ssc = dicebox.sensory_interface.SensoryInterface('server')
+
 
 # Write category map to disk for later usage directly with weights.
-logging.debug('writing category map to %s/category_map.json' % config.WEIGHTS_DIR)
-with open('%s/category_map.json' % config.WEIGHTS_DIR, 'w') as cat_map_file:
+logging.debug('writing category map to %s/category_map.json' % CONFIG.WEIGHTS_DIR)
+make_sure_path_exists(CONFIG.WEIGHTS_DIR)
+with open('%s/category_map.json' % CONFIG.WEIGHTS_DIR, 'w') as cat_map_file:
     cat_map_file.write(json.dumps(ssc.fsc.CATEGORY_MAP))
+
 
 ###############################################################################
 # Stores incoming sensory data
@@ -95,48 +102,48 @@ def sensory_batch_request(batch_size, noise=0):
     # determine how many shards need to be created for the batch
     shards = 1
     tail_shard_size = 0
-    if batch_size > config.SENSORY_SERVICE_SHARD_SIZE:
-        tail_shard_size = batch_size % config.SENSORY_SERVICE_SHARD_SIZE
-        shards = (batch_size - (batch_size % config.SENSORY_SERVICE_SHARD_SIZE))/config.SENSORY_SERVICE_SHARD_SIZE
+    if batch_size > CONFIG.SENSORY_SERVICE_SHARD_SIZE:
+        tail_shard_size = batch_size % CONFIG.SENSORY_SERVICE_SHARD_SIZE
+        shards = (batch_size - (batch_size % CONFIG.SENSORY_SERVICE_SHARD_SIZE))/CONFIG.SENSORY_SERVICE_SHARD_SIZE
 
     try:
         ## Submit our message
-        url = config.SENSORY_SERVICE_RABBITMQ_URL
+        url = CONFIG.SENSORY_SERVICE_RABBITMQ_URL
         # logging.debug(url)
         parameters = pika.URLParameters(url)
         connection = pika.BlockingConnection(parameters=parameters)
 
         channel = connection.channel()
 
-        channel.queue_declare(queue=config.SENSORY_SERVICE_RABBITMQ_BATCH_REQUEST_TASK_QUEUE, durable=True)
+        channel.queue_declare(queue=CONFIG.SENSORY_SERVICE_RABBITMQ_BATCH_REQUEST_TASK_QUEUE, durable=True)
 
         sensory_request = {}
         sensory_request['sensory_batch_request_id'] = str(sensory_batch_request_id)
-        if batch_size > config.SENSORY_SERVICE_SHARD_SIZE:
-            sensory_request['batch_size'] = config.SENSORY_SERVICE_SHARD_SIZE
+        if batch_size > CONFIG.SENSORY_SERVICE_SHARD_SIZE:
+            sensory_request['batch_size'] = CONFIG.SENSORY_SERVICE_SHARD_SIZE
         else:
             sensory_request['batch_size'] = batch_size
         sensory_request['noise'] = noise
 
         for shard in range(0, shards):
             # send message
-            channel.basic_publish(exchange=config.SENSORY_SERVICE_RABBITMQ_EXCHANGE,
-                                  routing_key=config.SENSORY_SERVICE_RABBITMQ_BATCH_REQUEST_ROUTING_KEY,
+            channel.basic_publish(exchange=CONFIG.SENSORY_SERVICE_RABBITMQ_EXCHANGE,
+                                  routing_key=CONFIG.SENSORY_SERVICE_RABBITMQ_BATCH_REQUEST_ROUTING_KEY,
                                   body=json.dumps(sensory_request),
                                   properties=pika.BasicProperties(
                                       delivery_mode=2,  # make message persistent
                                   ))
-            logging.debug(" [x] Sent %r" % json.dumps(sensory_request))
+            logging.debug(" [x] Sent %r", json.dumps(sensory_request))
         if tail_shard_size > 0:
             # send final message of size tail_shard_size
             sensory_request['batch_size'] = tail_shard_size
-            channel.basic_publish(exchange=config.SENSORY_SERVICE_RABBITMQ_EXCHANGE,
-                                  routing_key=config.SENSORY_SERVICE_RABBITMQ_BATCH_REQUEST_ROUTING_KEY,
+            channel.basic_publish(exchange=CONFIG.SENSORY_SERVICE_RABBITMQ_EXCHANGE,
+                                  routing_key=CONFIG.SENSORY_SERVICE_RABBITMQ_BATCH_REQUEST_ROUTING_KEY,
                                   body=json.dumps(sensory_request),
                                   properties=pika.BasicProperties(
                                       delivery_mode=2,  # make message persistent
                                   ))
-            logging.debug(" [x] Sent %r" % json.dumps(sensory_request))
+            logging.debug(" [x] Sent %r", json.dumps(sensory_request))
         connection.close()
     except:
         # something went wrong..
@@ -155,25 +162,30 @@ def sensory_batch_poll(batch_id):
     data = None
     label = None
 
-    url = config.SENSORY_SERVICE_RABBITMQ_URL
+    url = CONFIG.SENSORY_SERVICE_RABBITMQ_URL
     # logging.debug(url)
     parameters = pika.URLParameters(url)
-    connection = pika.BlockingConnection(parameters=parameters)
 
-    channel = connection.channel()
+    try:
+        connection = pika.BlockingConnection(parameters=parameters)
+        channel = connection.channel()
 
-    method_frame, header_frame, body = channel.basic_get(batch_id)
-    if method_frame:
-        logging.debug("%s %s %s" % (method_frame, header_frame, body))
-        message = json.loads(body)
-        label = message['label']
-        data = message['data']
-        logging.debug(label)
-        logging.debug(data)
-        channel.basic_ack(method_frame.delivery_tag)
-    else:
-        logging.debug('no message returned')
-    connection.close()
+        method_frame, header_frame, body = channel.basic_get(batch_id)
+        if method_frame:
+            logging.debug("%s %s %s", method_frame, header_frame, body)
+            message = json.loads(body)
+            label = message['label']
+            data = message['data']
+            logging.debug(label)
+            logging.debug(data)
+            channel.basic_ack(method_frame.delivery_tag)
+        else:
+            logging.debug('no message returned')
+    except:
+        logging.debug('requested queue not found.')
+    finally:
+        connection.close()
+
     return data, label
 
 
@@ -189,9 +201,9 @@ cors = CORS(app, resources={r"/api/*": {"origins": "http://localhost:*"}})
 ###############################################################################
 @app.route('/api/sensory/category', methods=['GET'])
 def make_api_category_map_public():
-    if request.headers['API-ACCESS-KEY'] != config.API_ACCESS_KEY:
+    if request.headers['API-ACCESS-KEY'] != CONFIG.API_ACCESS_KEY:
         abort(403)
-    if request.headers['API-VERSION'] != config.API_VERSION:
+    if request.headers['API-VERSION'] != CONFIG.API_VERSION:
         abort(400)
 
     return make_response(jsonify({'category_map': ssc.fsc.CATEGORY_MAP}), 200)
@@ -202,9 +214,9 @@ def make_api_category_map_public():
 ###############################################################################
 @app.route('/api/sensory/store', methods=['POST'])
 def make_api_sensory_store_public():
-    if request.headers['API-ACCESS-KEY'] != config.API_ACCESS_KEY:
+    if request.headers['API-ACCESS-KEY'] != CONFIG.API_ACCESS_KEY:
         abort(403)
-    if request.headers['API-VERSION'] != config.API_VERSION:
+    if request.headers['API-VERSION'] != CONFIG.API_VERSION:
         abort(400)
     if not request.json:
         abort(500)
@@ -230,7 +242,7 @@ def make_api_sensory_store_public():
     decoded_image_data = base64.b64decode(encoded_image_data)
 
     network_name = "%s_%ix%i" % (dataset_name, image_width, image_height)
-    data_directory = "%s/%s/data/" % (config.DATA_BASE_DIRECTORY, network_name)
+    data_directory = "%s/%s/data/" % (CONFIG.DATA_BASE_DIRECTORY, network_name)
 
     return_code = sensory_store(data_directory, category, decoded_image_data)
     return make_response(jsonify({'sensory_store': return_code}), 200)
@@ -241,10 +253,10 @@ def make_api_sensory_store_public():
 ###############################################################################
 @app.route('/api/sensory/batch', methods=['POST'])
 def make_api_sensory_batch_request_public():
-    if request.headers['API-ACCESS-KEY'] != config.API_ACCESS_KEY:
+    if request.headers['API-ACCESS-KEY'] != CONFIG.API_ACCESS_KEY:
         logging.debug('bad access key')
         abort(403)
-    if request.headers['API-VERSION'] != config.API_VERSION:
+    if request.headers['API-VERSION'] != CONFIG.API_VERSION:
         logging.debug('bad access version')
         abort(400)
     if not request.json:
@@ -270,10 +282,10 @@ def make_api_sensory_batch_request_public():
 ###############################################################################
 @app.route('/api/sensory/poll', methods=['POST'])
 def make_api_sensory_poll_public():
-    if request.headers['API-ACCESS-KEY'] != config.API_ACCESS_KEY:
+    if request.headers['API-ACCESS-KEY'] != CONFIG.API_ACCESS_KEY:
         logging.debug('bad access key')
         abort(403)
-    if request.headers['API-VERSION'] != config.API_VERSION:
+    if request.headers['API-VERSION'] != CONFIG.API_VERSION:
         logging.debug('bad access version')
         abort(400)
     if not request.json:
@@ -297,10 +309,10 @@ def make_api_sensory_poll_public():
 ###############################################################################
 @app.route('/api/sensory/request', methods=['POST'])
 def make_api_sensory_request_public():
-    if request.headers['API-ACCESS-KEY'] != config.API_ACCESS_KEY:
+    if request.headers['API-ACCESS-KEY'] != CONFIG.API_ACCESS_KEY:
         logging.debug('bad access key')
         abort(403)
-    if request.headers['API-VERSION'] != config.API_VERSION:
+    if request.headers['API-VERSION'] != CONFIG.API_VERSION:
         logging.debug('bad access version')
         abort(400)
     if not request.json:
@@ -329,7 +341,7 @@ def make_api_sensory_request_public():
 ###############################################################################
 @app.route('/api/version', methods=['GET'])
 def make_api_version_public():
-    return make_response(jsonify({'version':  str(config.API_VERSION)}), 200)
+    return make_response(jsonify({'version':  str(CONFIG.API_VERSION)}), 200)
 
 
 ###############################################################################
@@ -354,4 +366,4 @@ def not_found(error):
 ###############################################################################
 if __name__ == '__main__':
     logging.debug('starting flask app')
-    app.run(debug=config.FLASK_DEBUG, host=config.LISTENING_HOST, threaded=True)
+    app.run(debug=CONFIG.FLASK_DEBUG, host=CONFIG.LISTENING_HOST, threaded=True)
