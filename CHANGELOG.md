@@ -25,3 +25,8 @@ Change Log
 ----------
 * Updated Core Libraries.
 * Refactored to use updated libraries.
+
+04.06.2019
+----------
+* Refactored for updated dicebox namespace
+* Remnoved legacy nginx configuration files

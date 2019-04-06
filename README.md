@@ -17,14 +17,14 @@ The application is meant to be run within a docker container.  If you need to ru
 ```
 /root
     /app
-        /lib 
+        /dicebox 
         /dicebox.config
         [...]
     /assets
     /dicebox
     [...]
 ```
-* Symbolicly link /root/dicebox -> /root/app/lib
+* Symbolicly link /root/dicebox -> /root/app/dicebox
 * Copy dicebox.config into /root/app
 
 

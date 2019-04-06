@@ -11,8 +11,12 @@
 ###############################################################################
 # Dependencies
 ###############################################################################
-import dicebox.docker_config
-import dicebox.sensory_interface
+# import dicebox.docker_config
+from dicebox.config.dicebox_config import DiceboxConfig
+
+# import dicebox.sensory_interface
+from dicebox.connectors.sensory_service_connector import SensoryServiceConnector
+
 from flask import Flask, jsonify, request, make_response, abort
 from flask_cors import CORS, cross_origin
 import base64
@@ -28,7 +32,7 @@ import pika
 
 # Config
 config_file = './dicebox.config'
-CONFIG = dicebox.docker_config.DockerConfig(config_file)
+CONFIG = DiceboxConfig(config_file)
 
 
 ###############################################################################
@@ -60,14 +64,14 @@ logging.basicConfig(
 ###############################################################################
 # Generate our Sensory Service Interface
 ###############################################################################
-ssc = dicebox.sensory_interface.SensoryInterface('server', config_file)
+ssc = SensoryServiceConnector('server', config_file)
 
 
 # Write category map to disk for later usage directly with weights.
 logging.debug('writing category map to %s/category_map.json' % CONFIG.WEIGHTS_DIR)
 make_sure_path_exists(CONFIG.WEIGHTS_DIR)
 with open('%s/category_map.json' % CONFIG.WEIGHTS_DIR, 'w') as cat_map_file:
-    cat_map_file.write(json.dumps(ssc.fsc.CATEGORY_MAP))
+    cat_map_file.write(json.dumps(ssc.fsc.category_map))
 
 
 ###############################################################################
@@ -77,7 +81,7 @@ def sensory_store(data_dir, data_category, raw_image_data):
     filename = "%s" % datetime.now().strftime('%Y-%m-%d_%H_%M_%S_%f.png')
     path = "%s%s/" % (data_dir, data_category)
     full_filename = "%s%s" % (path, filename)
-    logging.debug("(%s)" % (full_filename))
+    logging.debug("(%s)", full_filename)
     make_sure_path_exists(path)
     with open(full_filename, 'wb') as f:
         f.write(raw_image_data)
@@ -207,7 +211,7 @@ def make_api_category_map_public():
     if request.headers['API-VERSION'] != CONFIG.API_VERSION:
         abort(400)
 
-    return make_response(jsonify({'category_map': ssc.fsc.CATEGORY_MAP}), 200)
+    return make_response(jsonify({'category_map': ssc.fsc.category_map}), 200)
 
 
 ###############################################################################
