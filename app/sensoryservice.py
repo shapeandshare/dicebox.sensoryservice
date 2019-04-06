@@ -11,12 +11,6 @@
 ###############################################################################
 # Dependencies
 ###############################################################################
-# import dicebox.docker_config
-from dicebox.config.dicebox_config import DiceboxConfig
-
-# import dicebox.sensory_interface
-from dicebox.connectors.sensory_service_connector import SensoryServiceConnector
-
 from flask import Flask, jsonify, request, make_response, abort
 from flask_cors import CORS, cross_origin
 import base64
@@ -28,7 +22,8 @@ import errno
 import uuid
 import numpy
 import pika
-
+from dicebox.config.dicebox_config import DiceboxConfig
+from dicebox.connectors.sensory_service_connector import SensoryServiceConnector
 
 # Config
 config_file = './dicebox.config'
