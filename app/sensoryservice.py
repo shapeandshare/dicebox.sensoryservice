@@ -6,7 +6,7 @@
 #
 # Copyright (c) 2017-2019 Joshua Burt
 ###############################################################################
-
+VERSION = '0.1.0'
 
 ###############################################################################
 # Dependencies
@@ -329,7 +329,9 @@ def make_api_sensory_request_public():
 ###############################################################################
 @app.route('/api/version', methods=['GET'])
 def make_api_version_public():
-    return make_response(jsonify({'version':  str(CONFIG.API_VERSION)}), 200)
+    return make_response(jsonify({
+        'version':  str(VERSION),
+        'dicebox lib version':  str(CONFIG.API_VERSION)}), 200)
 
 
 ###############################################################################
