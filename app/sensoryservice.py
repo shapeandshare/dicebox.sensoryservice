@@ -18,7 +18,6 @@ import logging
 import json
 from datetime import datetime
 import os
-import errno
 import uuid
 import numpy
 import pika
