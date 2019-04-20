@@ -28,7 +28,8 @@ from dicebox.connectors.sensory_service_connector import SensoryServiceConnector
 
 # Config
 config_file = './dicebox.config'
-CONFIG = DiceboxConfig(config_file)
+lonestar_model_file = './dicebox.lonestar.json'
+CONFIG = DiceboxConfig(config_file, lonestar_model_file)
 
 
 ###############################################################################
