@@ -22,6 +22,7 @@ import errno
 import uuid
 import numpy
 import pika
+import dicebox.utils.helpers as helpers
 from dicebox.config.dicebox_config import DiceboxConfig
 from dicebox.connectors.sensory_service_connector import SensoryServiceConnector
 
@@ -31,22 +32,9 @@ CONFIG = DiceboxConfig(config_file)
 
 
 ###############################################################################
-# Allows for easy directory structure creation
-# https://stackoverflow.com/questions/273192/how-can-i-create-a-directory-if-it-does-not-exist
-###############################################################################
-def make_sure_path_exists(path):
-    try:
-        if os.path.exists(path) is False:
-            os.makedirs(path)
-    except OSError as exception:
-        if exception.errno != errno.EEXIST:
-            raise
-
-
-###############################################################################
 # Setup logging
 ###############################################################################
-make_sure_path_exists(CONFIG.LOGS_DIR)
+helpers.make_sure_path_exists(CONFIG.LOGS_DIR)
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p',
