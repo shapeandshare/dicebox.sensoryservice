@@ -52,7 +52,7 @@ ssc = SensoryServiceConnector('server', config_file)
 
 # Write category map to disk for later usage directly with weights.
 logging.debug('writing category map to %s/category_map.json' % CONFIG.WEIGHTS_DIR)
-make_sure_path_exists(CONFIG.WEIGHTS_DIR)
+helpers.make_sure_path_exists(CONFIG.WEIGHTS_DIR)
 with open('%s/category_map.json' % CONFIG.WEIGHTS_DIR, 'w') as cat_map_file:
     cat_map_file.write(json.dumps(ssc.fsc.category_map))
 
@@ -65,7 +65,7 @@ def sensory_store(data_dir, data_category, raw_image_data):
     path = "%s%s/" % (data_dir, data_category)
     full_filename = "%s%s" % (path, filename)
     logging.debug("(%s)", full_filename)
-    make_sure_path_exists(path)
+    helpers.make_sure_path_exists(path)
     with open(full_filename, 'wb') as f:
         f.write(raw_image_data)
     return True
