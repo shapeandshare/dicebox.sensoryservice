@@ -6,7 +6,7 @@
 #
 # Copyright (c) 2017-2019 Joshua Burt
 ###############################################################################
-
+VERSION = '0.1.0'
 
 ###############################################################################
 # Dependencies
@@ -18,35 +18,23 @@ import logging
 import json
 from datetime import datetime
 import os
-import errno
 import uuid
 import numpy
 import pika
+import dicebox.utils.helpers as helpers
 from dicebox.config.dicebox_config import DiceboxConfig
 from dicebox.connectors.sensory_service_connector import SensoryServiceConnector
 
 # Config
 config_file = './dicebox.config'
-CONFIG = DiceboxConfig(config_file)
-
-
-###############################################################################
-# Allows for easy directory structure creation
-# https://stackoverflow.com/questions/273192/how-can-i-create-a-directory-if-it-does-not-exist
-###############################################################################
-def make_sure_path_exists(path):
-    try:
-        if os.path.exists(path) is False:
-            os.makedirs(path)
-    except OSError as exception:
-        if exception.errno != errno.EEXIST:
-            raise
+lonestar_model_file = './dicebox.lonestar.json'
+CONFIG = DiceboxConfig(config_file, lonestar_model_file)
 
 
 ###############################################################################
 # Setup logging
 ###############################################################################
-make_sure_path_exists(CONFIG.LOGS_DIR)
+helpers.make_sure_path_exists(CONFIG.LOGS_DIR)
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p',
@@ -64,7 +52,7 @@ ssc = SensoryServiceConnector('server', config_file)
 
 # Write category map to disk for later usage directly with weights.
 logging.debug('writing category map to %s/category_map.json' % CONFIG.WEIGHTS_DIR)
-make_sure_path_exists(CONFIG.WEIGHTS_DIR)
+helpers.make_sure_path_exists(CONFIG.WEIGHTS_DIR)
 with open('%s/category_map.json' % CONFIG.WEIGHTS_DIR, 'w') as cat_map_file:
     cat_map_file.write(json.dumps(ssc.fsc.category_map))
 
@@ -77,7 +65,7 @@ def sensory_store(data_dir, data_category, raw_image_data):
     path = "%s%s/" % (data_dir, data_category)
     full_filename = "%s%s" % (path, filename)
     logging.debug("(%s)", full_filename)
-    make_sure_path_exists(path)
+    helpers.make_sure_path_exists(path)
     with open(full_filename, 'wb') as f:
         f.write(raw_image_data)
     return True
@@ -219,20 +207,20 @@ def make_api_sensory_store_public():
     if request.headers['API-VERSION'] != CONFIG.API_VERSION:
         abort(400)
     if not request.json:
-        abort(500)
+        abort(400)
 
     if 'name' not in request.json:
-        abort(500)
+        abort(400)
     if 'width' not in request.json:
-        abort(500)
+        abort(400)
     if 'height' not in request.json:
-        abort(500)
+        abort(400)
     if 'height' not in request.json:
-        abort(500)
+        abort(400)
     if 'data' not in request.json:
-        abort(500)
+        abort(400)
     if 'data' in request.json and type(request.json['data']) != unicode:
-        abort(500)
+        abort(400)
 
     dataset_name = request.json.get('name')
     image_width = request.json.get('width')
@@ -261,14 +249,14 @@ def make_api_sensory_batch_request_public():
         abort(400)
     if not request.json:
         logging.debug('request not json')
-        abort(500)
+        abort(400)
 
     if 'batch_size' not in request.json:
         logging.debug('batch size not in request')
-        abort(500)
+        abort(400)
     if 'noise' not in request.json:
         logging.debug('noise not in request')
-        abort(500)
+        abort(400)
 
     batch_size = request.json.get('batch_size')
     noise = request.json.get('noise')
@@ -290,10 +278,10 @@ def make_api_sensory_poll_public():
         abort(400)
     if not request.json:
         logging.debug('request not json')
-        abort(500)
+        abort(400)
     if 'batch_id' not in request.json:
         logging.debug('batch id not in request')
-        abort(500)
+        abort(400)
 
     batch_id = request.json.get('batch_id')
 
@@ -317,14 +305,14 @@ def make_api_sensory_request_public():
         abort(400)
     if not request.json:
         logging.debug('request not json')
-        abort(500)
+        abort(400)
 
     if 'batch_size' not in request.json:
         logging.debug('batch size not in request')
-        abort(500)
+        abort(400)
     if 'noise' not in request.json:
         logging.debug('noise not in request')
-        abort(500)
+        abort(400)
 
     batch_size = request.json.get('batch_size')
     noise = request.json.get('noise')
@@ -341,7 +329,9 @@ def make_api_sensory_request_public():
 ###############################################################################
 @app.route('/api/version', methods=['GET'])
 def make_api_version_public():
-    return make_response(jsonify({'version':  str(CONFIG.API_VERSION)}), 200)
+    return make_response(jsonify({
+        'version':  str(VERSION),
+        'dicebox lib version':  str(CONFIG.API_VERSION)}), 200)
 
 
 ###############################################################################
