@@ -207,20 +207,20 @@ def make_api_sensory_store_public():
     if request.headers['API-VERSION'] != CONFIG.API_VERSION:
         abort(400)
     if not request.json:
-        abort(500)
+        abort(400)
 
     if 'name' not in request.json:
-        abort(500)
+        abort(400)
     if 'width' not in request.json:
-        abort(500)
+        abort(400)
     if 'height' not in request.json:
-        abort(500)
+        abort(400)
     if 'height' not in request.json:
-        abort(500)
+        abort(400)
     if 'data' not in request.json:
-        abort(500)
+        abort(400)
     if 'data' in request.json and type(request.json['data']) != unicode:
-        abort(500)
+        abort(400)
 
     dataset_name = request.json.get('name')
     image_width = request.json.get('width')
@@ -249,14 +249,14 @@ def make_api_sensory_batch_request_public():
         abort(400)
     if not request.json:
         logging.debug('request not json')
-        abort(500)
+        abort(400)
 
     if 'batch_size' not in request.json:
         logging.debug('batch size not in request')
-        abort(500)
+        abort(400)
     if 'noise' not in request.json:
         logging.debug('noise not in request')
-        abort(500)
+        abort(400)
 
     batch_size = request.json.get('batch_size')
     noise = request.json.get('noise')
@@ -278,10 +278,10 @@ def make_api_sensory_poll_public():
         abort(400)
     if not request.json:
         logging.debug('request not json')
-        abort(500)
+        abort(400)
     if 'batch_id' not in request.json:
         logging.debug('batch id not in request')
-        abort(500)
+        abort(400)
 
     batch_id = request.json.get('batch_id')
 
@@ -305,14 +305,14 @@ def make_api_sensory_request_public():
         abort(400)
     if not request.json:
         logging.debug('request not json')
-        abort(500)
+        abort(400)
 
     if 'batch_size' not in request.json:
         logging.debug('batch size not in request')
-        abort(500)
+        abort(400)
     if 'noise' not in request.json:
         logging.debug('noise not in request')
-        abort(500)
+        abort(400)
 
     batch_size = request.json.get('batch_size')
     noise = request.json.get('noise')
